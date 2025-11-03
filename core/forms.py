@@ -78,20 +78,37 @@ class AppointmentForm(forms.ModelForm):
         time_choices = kwargs.pop("time_choices", None)
         super().__init__(*args, **kwargs)
         self.fields["service"].queryset = Service.objects.filter(is_active=True)
-        for field in ("service", "appointment_date", "appointment_time"):
-            self.fields[field].widget.attrs["class"] = "form-control"
-        self.fields["service"].widget.attrs["class"] = "form-select"
-        self.fields["appointment_time"].widget.attrs["class"] = "form-select"
+        self.fields["service"].empty_label = "Seleccioná un servicio"
+        self.fields["service"].widget.attrs.update(
+            {
+                "class": "form-select select2-field",
+                "data-placeholder": "Seleccioná un servicio",
+            }
+        )
+        self.fields["appointment_date"].widget.attrs.setdefault("class", "form-control")
+        self.fields["appointment_time"].widget.attrs.update(
+            {
+                "class": "form-select select2-field",
+                "data-placeholder": "Elegí un horario",
+            }
+        )
         self.fields["appointment_date"].widget.attrs.setdefault("min", date.today().isoformat())
         # Ensure date inputs always use ISO format required by browsers
         self.fields["appointment_date"].widget.format = "%Y-%m-%d"
-        self.fields["payment_method"].widget.attrs["class"] = "form-select"
+        self.fields["payment_method"].widget.attrs.update(
+            {
+                "class": "form-select select2-field",
+                "data-placeholder": "Elegí medio de pago",
+            }
+        )
         self.fields["payment_reference"].widget.attrs.setdefault("class", "form-control")
         self.fields["notes"].widget.attrs["class"] = "form-control"
         if time_choices is None:
             time_choices = [choice for choice, _ in TimeSlot.choices]
         formatted_choices = [(choice, choice) for choice in time_choices]
-        self.fields["appointment_time"].choices = formatted_choices
+        self.fields["appointment_time"].choices = [("", "Elegí un horario")] + formatted_choices
+        payment_choices = [("", "Elegí medio de pago")] + list(Appointment.PaymentMethod.choices)
+        self.fields["payment_method"].choices = payment_choices
 
     def clean_appointment_date(self):
         appointment_date = self.cleaned_data["appointment_date"]

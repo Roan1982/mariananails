@@ -8,6 +8,243 @@ body {
     background: linear-gradient(135deg, rgba(238, 120, 157, 0.12), rgba(255, 214, 229, 0.35));
 }
 
+.booking-hero {
+    background: radial-gradient(circle at top right, rgba(238, 120, 157, 0.25), rgba(255, 214, 229, 0.35) 45%, #fff 80%);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1.5rem 3rem rgba(238, 120, 157, 0.15);
+}
+
+.booking-hero::after {
+    content: "";
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(238, 120, 157, 0.22), rgba(238, 120, 157, 0));
+    top: -120px;
+    right: -80px;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.booking-hero__title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.booking-hero__subtitle {
+    font-size: 1.05rem;
+    color: #5a5a5a;
+}
+
+.booking-steps {
+    gap: 1.5rem;
+    margin: 1.5rem 0 0;
+}
+
+.booking-step {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    color: #c04a73;
+    background-color: rgba(238, 120, 157, 0.12);
+    border-radius: 999px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.95rem;
+}
+
+.booking-step i {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 0 0 1px rgba(238, 120, 157, 0.35);
+}
+
+.booking-card {
+    border: none;
+    border-radius: 1.25rem;
+    box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.09);
+}
+
+.booking-card__header {
+    background: linear-gradient(120deg, rgba(238, 120, 157, 0.18), rgba(255, 214, 229, 0.35));
+    border-bottom: none;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+    padding: 1.5rem;
+}
+
+.booking-card__header small {
+    color: #6c6c6c;
+}
+
+.booking-card__body {
+    padding: 1.8rem;
+}
+
+.form-section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #b0375f;
+    margin-bottom: 0.8rem;
+}
+
+.info-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    background-color: rgba(238, 120, 157, 0.12);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    color: #b0375f;
+}
+
+.payment-note {
+    background: rgba(238, 120, 157, 0.08);
+    border: 1px solid rgba(238, 120, 157, 0.25);
+    border-radius: 1rem;
+    padding: 1rem 1.3rem;
+    font-size: 0.95rem;
+    color: #5a5a5a;
+}
+
+.deposit-card {
+    border: 1px dashed rgba(238, 120, 157, 0.55);
+    background: rgba(238, 120, 157, 0.09);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+}
+
+.deposit-card strong {
+    font-size: 1.1rem;
+    color: #c04a73;
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.status-chip--pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #b78111;
+}
+
+.status-chip--confirmed {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #23703c;
+}
+
+.status-chip--cancelled {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #b11d2c;
+}
+
+.timeline-card {
+    border-radius: 1.15rem;
+    box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.08);
+}
+
+.timeline-card .list-group-item {
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+}
+
+.timeline-card .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-card__badge {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.appointment-service {
+    font-weight: 600;
+    color: #2d2d2d;
+}
+
+.appointment-meta {
+    font-size: 0.85rem;
+    color: #828282;
+}
+
+.deposit-status-label {
+    font-size: 0.8rem;
+    color: #686868;
+}
+
+.form-text {
+    font-size: 0.82rem;
+    color: #8a4c64;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    min-height: 52px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: #fff;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+    font-size: 1rem;
+    color: #2f2f2f;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+    color: #a07b8a;
+}
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection--single,
+.select2-container--bootstrap-5 .select2-selection--single:focus {
+    border-color: #ee789d;
+    box-shadow: 0 0 0 0.2rem rgba(238, 120, 157, 0.25);
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-radius: 0.85rem;
+    border-color: rgba(238, 120, 157, 0.25);
+    box-shadow: 0 1rem 2rem rgba(238, 120, 157, 0.1);
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: rgba(238, 120, 157, 0.2);
+    color: #b0375f;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--selected {
+    background-color: rgba(238, 120, 157, 0.14);
+}
+
 .hero img,
 #historia img {
     max-height: 420px;
