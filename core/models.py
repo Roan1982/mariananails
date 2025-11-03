@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import time
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -99,6 +100,15 @@ class ContactMessage(models.Model):
 
 
 class Appointment(models.Model):
+    class DepositStatus(models.TextChoices):
+        PENDING = "pending", "Pendiente de verificación"
+        VERIFIED = "verified", "Verificada"
+
+    class PaymentMethod(models.TextChoices):
+        TRANSFER = "transfer", "Transferencia bancaria"
+        MERCADOPAGO = "mercadopago", "Mercado Pago"
+        CASH = "cash", "Efectivo en el local"
+
     STATUS_PENDING = "pending"
     STATUS_CONFIRMED = "confirmed"
     STATUS_CANCELLED = "cancelled"
@@ -116,6 +126,29 @@ class Appointment(models.Model):
     notes = models.CharField("Notas", max_length=255, blank=True)
     status = models.CharField("Estado", max_length=12, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
+    deposit_amount = models.DecimalField("Monto de seña", max_digits=8, decimal_places=2, default=0)
+    deposit_status = models.CharField(
+        "Estado de seña",
+        max_length=12,
+        choices=DepositStatus.choices,
+        default=DepositStatus.PENDING,
+    )
+    payment_method = models.CharField(
+        "Medio de pago",
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.TRANSFER,
+    )
+    payment_reference = models.CharField("Referencia de pago", max_length=120, blank=True)
+    deposit_verified_by = models.ForeignKey(
+        User,
+        verbose_name="Verificado por",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_deposits",
+    )
+    deposit_verified_at = models.DateTimeField("Fecha de verificación", null=True, blank=True)
 
     class Meta:
         ordering = ["appointment_date", "appointment_time"]
@@ -129,3 +162,9 @@ class Appointment(models.Model):
     @property
     def appointment_datetime(self):
         return self.appointment_date, TimeSlot.to_time(self.appointment_time)
+
+    def save(self, *args, **kwargs):
+        if self.service_id:
+            base_amount = self.service.price or Decimal("0")
+            self.deposit_amount = (base_amount * Decimal("0.50")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        super().save(*args, **kwargs)

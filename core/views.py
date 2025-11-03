@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -10,9 +11,10 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db.models import Avg, Count
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
 
 from .forms import AppointmentForm, ContactForm, RegistrationForm, ReviewForm
 from .models import Appointment, ContactMessage, GalleryImage, Review, Service, TimeSlot
@@ -95,11 +97,15 @@ def appointment_view(request: HttpRequest) -> HttpResponse:
                 messages.error(request, "Ese horario ya fue reservado. Elegí otro horario disponible.")
             else:
                 try:
+                    appointment.deposit_status = Appointment.DepositStatus.PENDING
                     appointment.save()
                 except IntegrityError:
                     messages.error(request, "Otro turno se confirmó en ese horario. Elegí una nueva opción disponible.")
                 else:
-                    messages.success(request, "Tu turno fue reservado. ¡Te esperamos!")
+                    messages.success(
+                        request,
+                        "Tu turno fue reservado. Verificaremos la seña del 50% y te confirmaremos a la brevedad.",
+                    )
                     return redirect("core:appointments")
     else:
         initial_data = {
@@ -112,6 +118,18 @@ def appointment_view(request: HttpRequest) -> HttpResponse:
         .order_by("appointment_date", "appointment_time")
     )
 
+    services_data = {
+        service.pk: {
+            "name": service.name,
+            "price": format(service.price, ".2f"),
+            "deposit": format(
+                (service.price * Decimal("0.50")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                ".2f",
+            ),
+        }
+        for service in Service.objects.filter(is_active=True)
+    }
+
     context = {
         "form": form,
         "selected_date": selected_date,
@@ -120,6 +138,8 @@ def appointment_view(request: HttpRequest) -> HttpResponse:
         "all_slots": all_slots,
         "upcoming_appointments": upcoming_appointments,
         "today": today,
+        "deposit_percentage": 50,
+        "services_payment_data": services_data,
     }
     return render(request, "core/appointment.html", context)
 
@@ -167,6 +187,12 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
 
     average_rating = Review.objects.filter(is_visible=True).aggregate(promedio=Avg("rating"))["promedio"]
 
+    pending_deposits = (
+        Appointment.objects.filter(deposit_status=Appointment.DepositStatus.PENDING)
+        .select_related("user", "service")
+        .order_by("appointment_date", "appointment_time")
+    )
+
     stats = {
         "appointments_today": appointments_today.count(),
         "appointments_week": upcoming_week.count(),
@@ -174,6 +200,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         "pending_messages": pending_messages_qs.count(),
         "average_rating": average_rating,
         "total_clients": User.objects.filter(is_staff=False).count(),
+        "pending_deposits": pending_deposits.count(),
     }
 
     context = {
@@ -185,6 +212,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         "recent_reviews": recent_reviews,
         "service_summary": service_summary,
         "stats": stats,
+        "pending_deposits": pending_deposits,
     }
     return render(request, "core/dashboard.html", context)
 
@@ -196,3 +224,24 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     messages.success(request, "Cerraste sesión correctamente.")
     return redirect("core:home")
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def verify_deposit(request: HttpRequest, appointment_id: int) -> HttpResponse:
+    appointment = get_object_or_404(Appointment.objects.select_related("service", "user"), pk=appointment_id)
+    appointment.deposit_status = Appointment.DepositStatus.VERIFIED
+    appointment.status = Appointment.STATUS_CONFIRMED
+    appointment.deposit_verified_by = request.user
+    appointment.deposit_verified_at = timezone.now()
+    appointment.save(update_fields=[
+        "deposit_status",
+        "status",
+        "deposit_verified_by",
+        "deposit_verified_at",
+    ])
+    messages.success(
+        request,
+        f"Se verificó la seña del turno de {appointment.user.get_full_name() or appointment.user.username}.",
+    )
+    return redirect("core:dashboard")

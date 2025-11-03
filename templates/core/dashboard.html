@@ -75,6 +75,14 @@
                     <div class="dashboard-card__hint">Gestioná desde el admin</div>
                 </div>
             </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-danger-subtle text-danger"><i class="bi bi-cash-coin"></i></div>
+                    <div class="dashboard-card__label">Señas por verificar</div>
+                    <div class="dashboard-card__value">{{ stats.pending_deposits }}</div>
+                    <div class="dashboard-card__hint">Revisá comprobantes pendientes</div>
+                </div>
+            </div>
         </div>
 
         <div class="row g-4">
@@ -155,7 +163,57 @@
             </div>
         </div>
 
-        <div class="row g-4 mt-1">
+        <div class="row g-4 mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-receipt me-2"></i>Señas pendientes de verificación</h2>
+                        <span class="badge text-bg-warning text-dark">{{ pending_deposits|length }} pendientes</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if pending_deposits %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Servicio</th>
+                                            <th>Turno</th>
+                                            <th>Monto</th>
+                                            <th>Medio</th>
+                                            <th>Comprobante</th>
+                                            <th class="text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for appointment in pending_deposits %}
+                                            <tr>
+                                                <td>{{ appointment.user.get_full_name|default:appointment.user.username }}</td>
+                                                <td>{{ appointment.service.name }}</td>
+                                                <td>{{ appointment.appointment_date|date:"d/m" }} · {{ appointment.appointment_time }}</td>
+                                                <td>$ {{ appointment.deposit_amount|floatformat:2 }}</td>
+                                                <td>{{ appointment.get_payment_method_display }}</td>
+                                                <td><span class="badge text-bg-secondary">{{ appointment.payment_reference }}</span></td>
+                                                <td class="text-end">
+                                                    <form method="post" action="{% url 'core:verify_deposit' appointment_id=appointment.pk %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle me-1"></i>Marcar verificada</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="p-4 text-center text-muted">No hay señas pendientes por revisar.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-4">
             <div class="col-xl-7">
                 <div class="card shadow-sm h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">

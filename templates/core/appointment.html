@@ -11,16 +11,22 @@
                 <p class="text-muted">Elegí el servicio, la fecha y uno de los horarios disponibles. Los horarios ya reservados aparecen bloqueados automáticamente.</p>
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
+                        <div class="alert alert-info" role="status">
+                            Para confirmar el turno necesitamos una seña del {{ deposit_percentage }}% del valor del servicio. Cargá el comprobante del pago para que podamos verificarlo.
+                        </div>
                         <form method="post">
                             {% csrf_token %}
+                            {{ form.non_field_errors }}
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label" for="id_service">Servicio</label>
                                     {{ form.service }}
+                                    {{ form.service.errors }}
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label" for="id_appointment_date">Fecha</label>
                                     {{ form.appointment_date }}
+                                    {{ form.appointment_date.errors }}
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label" for="id_appointment_time">Horario disponible</label>
@@ -29,10 +35,31 @@
                                     {% else %}
                                         <div class="alert alert-warning mb-0">No quedan horarios disponibles para la fecha seleccionada. Probá con otro día.</div>
                                     {% endif %}
+                                    {{ form.appointment_time.errors }}
+                                </div>
+                                <div class="col-12">
+                                    <div id="depositSummary" class="alert alert-secondary mb-0 d-none">
+                                        <strong>Seña estimada:</strong> <span id="depositAmount">--</span>
+                                        <span class="d-block small text-muted">Te enviaremos la confirmación cuando verifiquemos el pago.</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_payment_method">Medio de pago</label>
+                                    {{ form.payment_method }}
+                                    {{ form.payment_method.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_payment_reference">Comprobante</label>
+                                    {{ form.payment_reference }}
+                                    {{ form.payment_reference.errors }}
+                                    {% if form.payment_reference.help_text %}
+                                        <div class="form-text">{{ form.payment_reference.help_text }}</div>
+                                    {% endif %}
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label" for="id_notes">Notas (opcional)</label>
                                     {{ form.notes }}
+                                    {{ form.notes.errors }}
                                 </div>
                             </div>
                             <div class="text-end mt-4">
@@ -67,6 +94,7 @@
                                         <div>
                                             <div class="fw-semibold">{{ appointment.service.name }}</div>
                                             <small class="text-muted">{{ appointment.appointment_date|date:"d/m/Y" }} · {{ appointment.appointment_time }}</small>
+                                            <small class="text-muted d-block">Seña: $ {{ appointment.deposit_amount|floatformat:2 }} · {{ appointment.get_deposit_status_display }}</small>
                                         </div>
                                         <span class="badge {% if appointment.status == 'confirmed' %}text-bg-success{% elif appointment.status == 'cancelled' %}text-bg-danger{% else %}text-bg-warning text-dark{% endif %}">
                                             {{ appointment.get_status_display }}
@@ -86,31 +114,55 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{{ services_payment_data|json_script:"services-payment-data" }}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const dateField = document.getElementById('id_appointment_date');
-    if (!dateField) {
-        return;
+    const serviceField = document.getElementById('id_service');
+    const depositSummary = document.getElementById('depositSummary');
+    const depositAmount = document.getElementById('depositAmount');
+    const servicesDataElt = document.getElementById('services-payment-data');
+    const servicesData = servicesDataElt ? JSON.parse(servicesDataElt.textContent) : {};
+
+    if (dateField) {
+        const todayValue = '{{ today|date:"Y-m-d" }}';
+        if (todayValue) {
+            dateField.setAttribute('min', todayValue);
+        }
+
+        const selectedValue = '{{ selected_date|date:"Y-m-d" }}';
+        if (selectedValue) {
+            dateField.value = selectedValue;
+        }
+
+        dateField.addEventListener('change', function (event) {
+            if (!event.target.value) {
+                return;
+            }
+            const url = new URL(window.location.href);
+            url.searchParams.set('date', event.target.value);
+            window.location.href = url.toString();
+        });
     }
 
-    const todayValue = '{{ today|date:"Y-m-d" }}';
-    if (todayValue) {
-        dateField.setAttribute('min', todayValue);
-    }
-
-    const selectedValue = '{{ selected_date|date:"Y-m-d" }}';
-    if (selectedValue) {
-        dateField.value = selectedValue;
-    }
-
-    dateField.addEventListener('change', function (event) {
-        if (!event.target.value) {
+    const updateDepositSummary = () => {
+        if (!serviceField || !depositSummary || !depositAmount) {
             return;
         }
-        const url = new URL(window.location.href);
-        url.searchParams.set('date', event.target.value);
-        window.location.href = url.toString();
-    });
+        const data = servicesData[serviceField.value];
+        if (data) {
+            depositAmount.textContent = `$ ${data.deposit}`;
+            depositSummary.classList.remove('d-none');
+        } else {
+            depositAmount.textContent = '--';
+            depositSummary.classList.add('d-none');
+        }
+    };
+
+    if (serviceField) {
+        serviceField.addEventListener('change', updateDepositSummary);
+        updateDepositSummary();
+    }
 });
 </script>
 {% endblock %}

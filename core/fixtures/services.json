@@ -1,0 +1,98 @@
+[
+  {
+    "model": "core.service",
+    "pk": 1,
+    "fields": {
+      "name": "Manicuría clásica",
+      "description": "Corte, limado, exfoliación suave y esmaltado tradicional con acabado brillante.",
+      "duration_minutes": 60,
+      "price": "10000.00",
+      "is_active": true,
+      "display_order": 1
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 2,
+    "fields": {
+      "name": "Manicuría con semipermanente",
+      "description": "Servicio completo con esmaltado semipermanente, incluye nivelación y brillo extra.",
+      "duration_minutes": 75,
+      "price": "15000.00",
+      "is_active": true,
+      "display_order": 2
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 3,
+    "fields": {
+      "name": "Esmaltado francés",
+      "description": "Diseño francés clásico o invertido, con acabado profesional y larga duración.",
+      "duration_minutes": 75,
+      "price": "20000.00",
+      "is_active": true,
+      "display_order": 3
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 4,
+    "fields": {
+      "name": "Capping en gel",
+      "description": "Refuerzo de la uña natural con capa de gel, ideal para mayor duración y protección.",
+      "duration_minutes": 90,
+      "price": "26000.00",
+      "is_active": true,
+      "display_order": 4
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 5,
+    "fields": {
+      "name": "Soft gel tips",
+      "description": "Extensiones completas con tips soft gel y esmaltado a elección.",
+      "duration_minutes": 120,
+      "price": "32000.00",
+      "is_active": true,
+      "display_order": 5
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 6,
+    "fields": {
+      "name": "Esculpidas en acrílico",
+      "description": "Estructura en acrílico personalizada, incluye diseño básico y sellado.",
+      "duration_minutes": 150,
+      "price": "40000.00",
+      "is_active": true,
+      "display_order": 6
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 7,
+    "fields": {
+      "name": "Esmaltado artístico deluxe",
+      "description": "Arte de uñas avanzado con efectos, foil, strass y combinaciones personalizadas.",
+      "duration_minutes": 120,
+      "price": "48000.00",
+      "is_active": true,
+      "display_order": 7
+    }
+  },
+  {
+    "model": "core.service",
+    "pk": 8,
+    "fields": {
+      "name": "Spa de manos premium",
+      "description": "Tratamiento intensivo con mascarillas nutritivas, masaje y esmaltado a elección.",
+      "duration_minutes": 105,
+      "price": "60000.00",
+      "is_active": true,
+      "display_order": 8
+    }
+  }
+]

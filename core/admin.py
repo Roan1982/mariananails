@@ -44,9 +44,41 @@ class AppointmentAdmin(admin.ModelAdmin):
         "appointment_date",
         "appointment_time",
         "status",
+        "deposit_status",
+        "deposit_amount",
         "created_at",
     )
-    list_filter = ("status", "appointment_date", "service")
-    search_fields = ("user__username", "service__name")
+    list_filter = ("status", "deposit_status", "appointment_date", "service", "payment_method")
+    search_fields = ("user__username", "service__name", "payment_reference")
     autocomplete_fields = ("service", "user")
     ordering = ("-appointment_date", "appointment_time")
+    readonly_fields = ("created_at", "deposit_amount", "deposit_verified_by", "deposit_verified_at")
+    fieldsets = (
+        (
+            "Detalle del turno",
+            {
+                "fields": (
+                    "user",
+                    "service",
+                    "appointment_date",
+                    "appointment_time",
+                    "status",
+                    "notes",
+                    "created_at",
+                )
+            },
+        ),
+        (
+            "Seña",
+            {
+                "fields": (
+                    "deposit_amount",
+                    "deposit_status",
+                    "payment_method",
+                    "payment_reference",
+                    "deposit_verified_by",
+                    "deposit_verified_at",
+                )
+            },
+        ),
+    )

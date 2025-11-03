@@ -49,10 +49,27 @@ class AppointmentForm(forms.ModelForm):
         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
         input_formats=["%Y-%m-%d"],
     )
+    payment_method = forms.ChoiceField(
+        label="Medio de pago",
+        choices=Appointment.PaymentMethod.choices,
+    )
+    payment_reference = forms.CharField(
+        label="Comprobante / número de operación",
+        max_length=120,
+        help_text="Ingresá el identificador que permita verificar la seña (ej: número de transferencia o alias).",
+        error_messages={"required": "Necesitamos un comprobante para poder verificar la seña."},
+    )
 
     class Meta:
         model = Appointment
-        fields = ["service", "appointment_date", "appointment_time", "notes"]
+        fields = [
+            "service",
+            "appointment_date",
+            "appointment_time",
+            "payment_method",
+            "payment_reference",
+            "notes",
+        ]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3, "placeholder": "Notas adicionales (opcional)"}),
         }
@@ -68,6 +85,8 @@ class AppointmentForm(forms.ModelForm):
         self.fields["appointment_date"].widget.attrs.setdefault("min", date.today().isoformat())
         # Ensure date inputs always use ISO format required by browsers
         self.fields["appointment_date"].widget.format = "%Y-%m-%d"
+        self.fields["payment_method"].widget.attrs["class"] = "form-select"
+        self.fields["payment_reference"].widget.attrs.setdefault("class", "form-control")
         self.fields["notes"].widget.attrs["class"] = "form-control"
         if time_choices is None:
             time_choices = [choice for choice, _ in TimeSlot.choices]
@@ -79,6 +98,12 @@ class AppointmentForm(forms.ModelForm):
         if appointment_date < datetime.today().date():
             raise forms.ValidationError("No podés reservar un turno en el pasado.")
         return appointment_date
+
+    def clean_payment_reference(self):
+        reference = self.cleaned_data["payment_reference"].strip()
+        if not reference:
+            raise forms.ValidationError("Necesitamos un comprobante para poder verificar la seña.")
+        return reference
 
 
 class RegistrationForm(UserCreationForm):
