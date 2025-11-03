@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Ingresar · {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h3 mb-3 fw-bold text-center">Ingresá a tu cuenta</h1>
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <div class="mb-3">
+                                <label class="form-label" for="id_username">Usuario</label>
+                                {{ form.username }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="id_password">Contraseña</label>
+                                {{ form.password }}
+                            </div>
+                            <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+                        </form>
+                        <p class="text-center small text-muted mt-3 mb-0">¿No tenés cuenta? <a href="{% url 'core:register' %}">Registrate aquí</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

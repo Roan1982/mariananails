@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Panel interno · {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Panel de control</h1>
+                <p class="text-muted mb-0">Gestión integral del salón · Actualizado al {{ today|date:"d/m/Y" }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="{% url 'admin:index' %}" target="_blank" rel="noopener">
+                    <i class="bi bi-gear-fill me-1"></i> Administración Django
+                </a>
+                <a class="btn btn-primary" href="{% url 'core:appointments' %}">
+                    <i class="bi bi-calendar-plus me-1"></i> Crear turno manual
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-primary-subtle text-primary"><i class="bi bi-calendar-event"></i></div>
+                    <div class="dashboard-card__label">Turnos hoy</div>
+                    <div class="dashboard-card__value">{{ stats.appointments_today }}</div>
+                    <div class="dashboard-card__hint">{{ today|date:"d/m" }}</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-success-subtle text-success"><i class="bi bi-calendar-week"></i></div>
+                    <div class="dashboard-card__label">Semana próxima</div>
+                    <div class="dashboard-card__value">{{ stats.appointments_week }}</div>
+                    <div class="dashboard-card__hint">Hasta {{ week_end|date:"d/m" }}</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-warning-subtle text-warning"><i class="bi bi-chat-dots"></i></div>
+                    <div class="dashboard-card__label">Mensajes pendientes</div>
+                    <div class="dashboard-card__value">{{ stats.pending_messages }}</div>
+                    <div class="dashboard-card__hint">Contactate con tus clientas</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-info-subtle text-info"><i class="bi bi-stars"></i></div>
+                    <div class="dashboard-card__label">Promedio valoraciones</div>
+                    <div class="dashboard-card__value">
+                        {% if stats.average_rating %}
+                            {{ stats.average_rating|floatformat:1 }}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </div>
+                    <div class="dashboard-card__hint">Sobre 5 puntos</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-secondary-subtle text-secondary"><i class="bi bi-people"></i></div>
+                    <div class="dashboard-card__label">Clientas registradas</div>
+                    <div class="dashboard-card__value">{{ stats.total_clients }}</div>
+                    <div class="dashboard-card__hint">Incluye usuarios activos</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-2">
+                <div class="dashboard-card">
+                    <div class="dashboard-card__icon bg-danger-subtle text-danger"><i class="bi bi-gem"></i></div>
+                    <div class="dashboard-card__label">Servicios activos</div>
+                    <div class="dashboard-card__value">{{ stats.services_active }}</div>
+                    <div class="dashboard-card__hint">Gestioná desde el admin</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-7">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-clock-history me-2"></i>Agenda de hoy</h2>
+                        <span class="badge text-bg-primary">{{ appointments_today|length }} turnos</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if appointments_today %}
+                            <div class="table-responsive">
+                                <table class="table table-striped mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Hora</th>
+                                            <th>Servicio</th>
+                                            <th>Cliente</th>
+                                            <th class="text-center">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for appointment in appointments_today %}
+                                            <tr>
+                                                <td class="fw-semibold">{{ appointment.appointment_time }}</td>
+                                                <td>{{ appointment.service.name }}</td>
+                                                <td>
+                                                    {{ appointment.user.get_full_name|default:appointment.user.username }}<br>
+                                                    <small class="text-muted">Creado {{ appointment.created_at|date:"d/m H:i" }}</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge {% if appointment.status == 'confirmed' %}text-bg-success{% elif appointment.status == 'cancelled' %}text-bg-danger{% else %}text-bg-warning text-dark{% endif %}">
+                                                        {{ appointment.get_status_display }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="p-4 text-center text-muted">
+                                No hay turnos agendados para hoy.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-calendar3 me-2"></i>Próximos 7 días</h2>
+                        <span class="badge text-bg-secondary">{{ upcoming_week|length }} turnos</span>
+                    </div>
+                    <div class="card-body">
+                        {% if upcoming_week %}
+                            <ul class="list-group list-group-flush">
+                                {% for appointment in upcoming_week %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <div class="fw-semibold">{{ appointment.service.name }}</div>
+                                                <small class="text-muted">{{ appointment.appointment_date|date:"d/m" }} · {{ appointment.appointment_time }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <div>{{ appointment.user.get_full_name|default:appointment.user.username }}</div>
+                                                <small class="text-muted">{{ appointment.get_status_display }}</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">No hay turnos en la próxima semana.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-xl-7">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-chat-left-text me-2"></i>Mensajes pendientes</h2>
+                        <a class="small" href="{% url 'admin:core_contactmessage_changelist' %}" target="_blank" rel="noopener">Ver todos</a>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_messages %}
+                            <div class="list-group list-group-flush">
+                                {% for message in pending_messages %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <div class="fw-semibold">{{ message.name }}</div>
+                                                <small class="text-muted">{{ message.email }}{% if message.phone %} · {{ message.phone }}{% endif %}</small>
+                                            </div>
+                                            <small class="text-muted">{{ message.created_at|date:"d/m H:i" }}</small>
+                                        </div>
+                                        <p class="mb-0 mt-2">{{ message.message|truncatewords:25 }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No hay mensajes pendientes por responder.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-star me-2"></i>Últimas valoraciones</h2>
+                        <a class="small" href="{% url 'admin:core_review_changelist' %}" target="_blank" rel="noopener">Administrar</a>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_reviews %}
+                            <ul class="list-unstyled mb-0">
+                                {% for review in recent_reviews %}
+                                    <li class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="fw-semibold">{{ review.user.get_full_name|default:review.user.username }}</div>
+                                            <span class="badge text-bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>{{ review.rating }}</span>
+                                        </div>
+                                        <p class="mb-1 text-muted">{{ review.comment|truncatewords:18 }}</p>
+                                        <small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">Aún no hay valoraciones registradas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Servicios más reservados</h2>
+                        <a class="small" href="{% url 'admin:core_service_changelist' %}" target="_blank" rel="noopener">Gestionar</a>
+                    </div>
+                    <div class="card-body">
+                        {% if service_summary %}
+                            <ul class="list-group list-group-flush">
+                                {% for service in service_summary %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>{{ service.name }}</span>
+                                        <span class="badge text-bg-primary">{{ service.total_appointments|default:0 }} turnos</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">Todavía no hay suficientes turnos para mostrar estadísticas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

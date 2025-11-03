@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ COMPANY_NAME }} · Manicuría Profesional{% endblock %}
+
+{% block content %}
+<section class="py-5 hero">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <h1 class="display-5 fw-bold">Manicuría premium con calidez humana</h1>
+                <p class="lead">Experimentá el cuidado de tus manos con técnicas modernas, materiales de primera y un servicio personalizado.</p>
+                <div class="d-flex gap-3">
+                    <a class="btn btn-primary btn-lg" href="{% url 'core:appointments' %}">Reservar turno</a>
+                    <a class="btn btn-outline-secondary btn-lg" href="/#servicios">Ver servicios</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img class="img-fluid rounded shadow" src="{% static 'img/hero-placeholder.svg' %}" alt="Manicuría profesional">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="servicios" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Nuestros servicios</h2>
+            <p class="text-muted">Elegí el tratamiento ideal para tus manos y uñas.</p>
+        </div>
+        <div class="row g-4">
+            {% for service in services %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ service.name }}</h5>
+                            <p class="card-text text-muted">{{ service.description }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">${{ service.price }}</span>
+                            <span class="badge text-bg-light"><i class="bi bi-clock"></i> {{ service.duration_minutes }} min</span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <div class="alert alert-info">Aún no hay servicios cargados. Agregalos desde el panel de administración.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="galeria" class="py-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Galería de trabajos</h2>
+            <p class="text-muted">Algunos de los diseños y estilos que realizamos.</p>
+        </div>
+        <div class="row g-4">
+            {% for image in gallery %}
+                <div class="col-6 col-md-4 col-xl-3">
+                    <div class="card gallery-card h-100">
+                        {% if image.image %}
+                            <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}">
+                        {% else %}
+                            <div class="gallery-fallback d-flex align-items-center justify-content-center">
+                                <span class="text-muted">Sin imagen</span>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title mb-1">{{ image.title }}</h6>
+                            {% if image.description %}<p class="card-text small text-muted">{{ image.description }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <div class="alert alert-info">Añadí tus imágenes favoritas desde el administrador para mostrarlas acá.</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="historia" class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <img class="img-fluid rounded shadow" src="{% static 'img/story-placeholder.svg' %}" alt="Historia Mariana Nails">
+            </div>
+            <div class="col-lg-6">
+                <h2 class="fw-bold">Nuestra historia</h2>
+                <p>Mariana Nails nació de la pasión por el detalle y el deseo de brindar una experiencia de bienestar en cada visita. Somos un equipo de profesionales dedicadas que seguimos capacitándonos para ofrecer las últimas tendencias en manicuría.</p>
+                <p>Creemos en la calidez, la higiene y la seguridad como pilares para que cada clienta se sienta única. Gracias por acompañarnos y ser parte de esta historia que construimos mano a mano.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="valoraciones" class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">Lo que dicen nuestras clientas</h2>
+                <p class="text-muted mb-0">Promedio: {{ avg_rating|default:"--"|floatformat:1 }}/5</p>
+            </div>
+            {% if user.is_authenticated %}
+                <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#reviewForm" aria-expanded="false">
+                    Dejar una valoración
+                </button>
+            {% else %}
+                <a class="btn btn-outline-primary" href="{% url 'login' %}?next=/#valoraciones">Iniciá sesión para dejar tu valoración</a>
+            {% endif %}
+        </div>
+
+        <div class="collapse" id="reviewForm">
+            <div class="card card-body shadow-sm mb-4">
+                <form method="post" action="/#valoraciones">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="review">
+                    {% if review_form.errors %}
+                        <div class="alert alert-danger">Revisá los datos del formulario e intentá nuevamente.</div>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label" for="id_rating">Valoración (1 a 5)</label>
+                            {{ review_form.rating }}
+                            {{ review_form.rating.errors }}
+                        </div>
+                        <div class="col-md-10">
+                            <label class="form-label" for="id_comment">Comentario</label>
+                            {{ review_form.comment }}
+                            {{ review_form.comment.errors }}
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">Enviar valoración</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for review in reviews %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ review.user.first_name|default:review.user.username }}</h5>
+                                <span class="badge text-bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>{{ review.rating }}</span>
+                            </div>
+                            <p class="card-text text-muted">{{ review.comment }}</p>
+                        </div>
+                        <div class="card-footer small text-muted">{{ review.created_at|date:"d \d\e F, Y" }}</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <div class="alert alert-info">Todavía no hay valoraciones. ¡Sé la primera en contarnos tu experiencia!</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="contacto" class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <h2 class="fw-bold">Contactate con nosotras</h2>
+                <p class="text-muted">Coordiná tu visita o contanos qué servicio estás buscando. Respondemos a la brevedad.</p>
+                <ul class="list-unstyled fs-5">
+                    <li class="mb-2"><i class="bi bi-telephone me-2"></i>{{ COMPANY_PHONE }}</li>
+                    <li class="mb-2"><i class="bi bi-envelope me-2"></i>{{ COMPANY_EMAIL }}</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>{{ COMPANY_ADDRESS }}</li>
+                </ul>
+            </div>
+            <div class="col-lg-7">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Escribinos</h5>
+                        <form method="post" action="/#contacto">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="contact">
+                            {% if contact_form.errors %}
+                                <div class="alert alert-danger">Revisá los datos del formulario de contacto.</div>
+                            {% endif %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_name">Nombre</label>
+                                    {{ contact_form.name }}
+                                    {{ contact_form.name.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="id_email">Email</label>
+                                    {{ contact_form.email }}
+                                    {{ contact_form.email.errors }}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label" for="id_phone">Teléfono</label>
+                                    {{ contact_form.phone }}
+                                    {{ contact_form.phone.errors }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="id_message">Mensaje</label>
+                                    {{ contact_form.message }}
+                                    {{ contact_form.message.errors }}
+                                </div>
+                            </div>
+                            <div class="text-end mt-3">
+                                <button type="submit" class="btn btn-primary">Enviar mensaje</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
